@@ -2,6 +2,11 @@ class_name State_Attack extends State
 
 var attacking: bool = false
 
+@export var attack_sound: AudioStream
+@export_range(1, 20, 0.5) var decelerate_speed: float = 5
+@onready var audio: AudioStreamPlayer2D = $"../../Audio/Sword"
+@onready var hurt_box: HurtBox = %AttackHurtBox
+
 @onready var walk: State = $"../Walk"
 @onready var animation_player: AnimationPlayer = $"../../AnimationPlayer"
 @onready var attack_anim: AnimationPlayer = $"../../Sprite2D/Weapons/AttackEffectAnimation"
@@ -19,7 +24,14 @@ func Enter() -> void:
 	player.UpdateAnimation("attack")
 	attack_anim.play("attack_" + player.AnimDirection())
 	animation_player.animation_finished.connect(EndAttack)
+	audio.stream = attack_sound
+	audio.pitch_scale = randf_range(0.9, 1.1)
+	audio.play()
 	attacking = true	
+	
+	await get_tree().create_timer(0.4).timeout
+	
+	hurt_box.monitoring = true
 	pass
 	
 	
@@ -27,11 +39,12 @@ func Enter() -> void:
 func Exit() -> void:
 	animation_player.animation_finished.disconnect(EndAttack)
 	attacking = false
+	hurt_box.monitoring = false
 	pass
 
 # What happens during the _process update in this State?		
 func Process(delta: float)  -> State:
-	player.velocity = Vector2.ZERO
+	player.velocity -= player.velocity * decelerate_speed * delta
 	
 	if attacking == false:
 		if player.direction == Vector2.ZERO:

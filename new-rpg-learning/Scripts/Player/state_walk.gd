@@ -11,6 +11,7 @@ func _ready():
 
 
 
+
 # What happens when the player enter this state
 func Enter() -> void:
 	player.UpdateAnimation("walk")
